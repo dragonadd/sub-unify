@@ -628,6 +628,7 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
 					<div id="noticeContent" class="notice-content" style="display: none;">
 						---------------------------------------------------------------<br>
               配置订阅地址会导致配置页泄露，请谨慎分享！<br>
+              ---------------------------------------------------------------<br>
               自适应订阅地址:<br>
               <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?sub','qrcode_0')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}</a><br>
               <div id="qrcode_0" style="margin: 10px 10px 10px 10px;"></div>
