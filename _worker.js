@@ -542,17 +542,21 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
                     <meta name="viewport" content="width=device-width, initial-scale=1">
                     <style>
                         body {
-                            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                            background: linear-gradient(135deg, #6e8efb 0%, #fd79a8 100%);
                             min-height: 100vh;
                             margin: 0;
                             padding: 15px;
                             box-sizing: border-box;
                             font-size: 13px;
+                            color: #333; /* 添加文本颜色以确保可读性 */
                         }
                         .editor-container {
                             width: 100%;
                             max-width: 100%;
                             margin: 0 auto;
+                            background-color: rgba(255, 255, 255, 0.8); /* 添加半透明白色背景 */
+                            padding: 15px;
+                            border-radius: 8px;
                         }
                         .editor {
                             width: 100%;
@@ -566,7 +570,7 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
                             line-height: 1.5;
                             overflow-y: auto;
                             resize: none;
-                            background-color: rgba(255, 255, 255, 0.8); /* 添加半透明背景以提高可读性 */
+                            background-color: rgba(255, 255, 255, 0.9); /* 添加半透明背景以提高可读性 */
                         }
                         .save-container {
                             margin-top: 8px;
