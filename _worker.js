@@ -104,7 +104,7 @@ export default {
 					订阅格式 = 'loon';
 				} else if (userAgent.includes('clash') || userAgent.includes('meta') || userAgent.includes('mihomo') || url.searchParams.has('clash')) {
 					订阅格式 = 'clash';
-				} 
+				}
 			}
 
 			let subConverterUrl;
@@ -126,6 +126,18 @@ export default {
 				console.log(请求订阅响应内容);
 				req_data += 请求订阅响应内容[0].join('\n');
 				订阅转换URL += "|" + 请求订阅响应内容[1];
+				if (订阅格式 == 'base64' && !userAgent.includes('subconverter') && 请求订阅响应内容[1].includes('://')) {
+					subConverterUrl = `${subProtocol}://${subConverter}/sub?target=mixed&url=${encodeURIComponent(请求订阅响应内容[1])}&insert=false&config=${encodeURIComponent(subConfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
+					try {
+						const subConverterResponse = await fetch(subConverterUrl);
+						if (subConverterResponse.ok) {
+							const subConverterContent = await subConverterResponse.text();
+							req_data += '\n' + atob(subConverterContent);
+						}
+					} catch (error) {
+						console.log('订阅转换请回base64失败，检查订阅转换后端是否正常运行');
+					}
+				}
 			}
 
 			if (env.WARP) 订阅转换URL += "|" + (await ADD(env.WARP)).join("|");
