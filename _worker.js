@@ -574,137 +574,365 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
                     <style>
-                        body {
-                            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                            min-height: 100vh;
-                            margin: 0;
-                            padding: 15px;
-                            box-sizing: border-box;
-                            font-size: 13px;
+                        :root {
+                            --bg0: #0f172a;
+                            --bg1: #1e293b;
+                            --bg2: #334155;
+                            --card: rgba(255, 255, 255, 0.055);
+                            --card-border: rgba(255, 255, 255, 0.10);
+                            --line: rgba(255, 255, 255, 0.08);
+                            --txt: #e2e8f0;
+                            --muted: #94a3b8;
+                            --accent: #38bdf8;
+                            --accent2: #818cf8;
+                            --accent3: #c084fc;
+                            --grad: linear-gradient(135deg, #38bdf8, #818cf8 55%, #c084fc);
+                            --ok: #34d399;
+                            --warn: #fbbf24;
+                            --err: #f87171;
+                            --radius: 16px;
+                            --shadow: 0 20px 45px rgba(2, 6, 23, 0.55);
                         }
-                        .editor-container {
-                            width: 100%;
-                            max-width: 100%;
+                        * { box-sizing: border-box; }
+                        body {
+                            margin: 0;
+                            min-height: 100vh;
+                            padding: 24px 14px;
+                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+                            font-size: 14px;
+                            line-height: 1.6;
+                            color: var(--txt);
+                            background:
+                                radial-gradient(900px 520px at 15% -8%, rgba(129, 140, 248, 0.22), transparent 60%),
+                                radial-gradient(820px 460px at 100% 0%, rgba(56, 189, 248, 0.18), transparent 55%),
+                                radial-gradient(760px 620px at 50% 120%, rgba(192, 132, 252, 0.14), transparent 55%),
+                                linear-gradient(135deg, var(--bg0), var(--bg1) 52%, var(--bg0));
+                            background-attachment: fixed;
+                        }
+                        .page {
+                            max-width: 1080px;
                             margin: 0 auto;
                         }
-                        .editor {
-                            width: 100%;
-                            height: 300px;
-                            margin: 15px 0;
-                            padding: 10px;
-                            box-sizing: border-box;
-                            border: 1px solid #ccc;
-                            border-radius: 4px;
-                            font-size: 13px;
-                            line-height: 1.5;
-                            overflow-y: auto;
-                            resize: none;
-                            background-color: rgba(255, 255, 255, 0.8); /* 添加半透明背景以提高可读性 */
-                        }
-                        .save-container {
-                            margin-top: 8px;
+                        /* ---------- Hero ---------- */
+                        .hero {
                             display: flex;
                             align-items: center;
-                            gap: 10px;
+                            justify-content: space-between;
+                            flex-wrap: wrap;
+                            gap: 16px;
+                            padding: 26px 22px;
+                            margin-bottom: 20px;
+                            background: var(--card);
+                            border: 1px solid var(--card-border);
+                            border-radius: var(--radius);
+                            backdrop-filter: blur(12px);
+                            box-shadow: var(--shadow);
                         }
-                        .save-btn, .back-btn {
-                            padding: 6px 15px;
-                            color: white;
-                            border: none;
-                            border-radius: 4px;
+                        .brand { display: flex; align-items: center; gap: 16px; }
+                        .logo {
+                            width: 52px; height: 52px;
+                            display: grid; place-items: center;
+                            font-size: 28px;
+                            border-radius: 14px;
+                            background: var(--grad);
+                            box-shadow: 0 8px 22px rgba(129, 140, 248, 0.45);
+                        }
+                        .hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: .5px; }
+                        .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+                        .tagline { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+                        .pill {
+                            display: inline-flex; align-items: center; gap: 6px;
+                            padding: 6px 14px;
+                            font-size: 12px; font-weight: 600;
+                            border-radius: 999px;
+                            background: rgba(56, 189, 248, 0.14);
+                            border: 1px solid rgba(56, 189, 248, 0.35);
+                            color: #7dd3fc;
+                        }
+                        .notice-bar {
+                            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+                            padding: 10px 16px;
+                            margin-bottom: 20px;
+                            font-size: 12.5px;
+                            border-radius: 12px;
+                            background: rgba(251, 191, 36, 0.10);
+                            border: 1px solid rgba(251, 191, 36, 0.30);
+                            color: #fde68a;
+                        }
+                        .notice-bar code { padding: 2px 7px; border-radius: 6px; background: rgba(2,6,23,.4); }
+                        /* ---------- Grid ---------- */
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+                        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+                        /* ---------- Card ---------- */
+                        .card {
+                            padding: 20px 22px;
+                            background: var(--card);
+                            border: 1px solid var(--card-border);
+                            border-radius: var(--radius);
+                            backdrop-filter: blur(12px);
+                            box-shadow: var(--shadow);
+                        }
+                        .card + .card, .card + .ua { margin-top: 20px; }
+                        .card-head {
+                            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+                            font-size: 15px; font-weight: 700;
+                            margin-bottom: 4px;
+                        }
+                        .card-sub { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; }
+                        .muted { color: var(--muted); }
+                        .warn {
+                            padding: 8px 12px; margin: 8px 0 12px;
+                            font-size: 12.5px; color: #fde68a;
+                            border-radius: 10px;
+                            background: rgba(251, 191, 36, 0.10);
+                            border: 1px solid rgba(251, 191, 36, 0.28);
+                        }
+                        /* ---------- Link rows ---------- */
+                        .link-list { display: flex; flex-direction: column; gap: 10px; }
+                        .link-row {
+                            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+                            padding: 10px 12px;
+                            border-radius: 12px;
+                            background: rgba(15, 23, 42, 0.55);
+                            border: 1px solid var(--line);
+                            transition: border-color .18s ease, transform .18s ease, background .18s ease;
+                        }
+                        .link-row:hover { border-color: rgba(129,140,248,.45); background: rgba(15,23,42,.8); transform: translateY(-1px); }
+                        .chip {
+                            flex: 0 0 auto;
+                            min-width: 64px; text-align: center;
+                            padding: 4px 9px;
+                            font-size: 11.5px; font-weight: 700; letter-spacing: .3px;
+                            border-radius: 8px;
+                        }
+                        .chip-auto   { background: linear-gradient(135deg,#0ea5e9,#6366f1); color:#fff; }
+                        .chip-b64    { background: rgba(52,211,153,.16); color:#6ee7b7; border:1px solid rgba(52,211,153,.35); }
+                        .chip-clash  { background: rgba(249,115,22,.16);  color:#fdba74; border:1px solid rgba(249,115,22,.35); }
+                        .chip-singbox{ background: rgba(244,63,94,.16);  color:#fda4af; border:1px solid rgba(244,63,94,.35); }
+                        .chip-surge  { background: rgba(168,85,247,.16);  color:#d8b4fe; border:1px solid rgba(168,85,247,.35); }
+                        .chip-quanx  { background: rgba(234,179,8,.16);   color:#fde047; border:1px solid rgba(234,179,8,.35); }
+                        .chip-loon   { background: rgba(14,165,233,.16);  color:#7dd3fc; border:1px solid rgba(14,165,233,.35); }
+                        .link-btn {
+                            flex: 1 1 280px;
+                            display: block; text-align: left;
+                            padding: 6px 10px;
+                            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                            font-size: 12px; color: #bae6fd;
+                            background: rgba(2, 6, 23, 0.5);
+                            border: 1px solid rgba(56,189,248,.25);
+                            border-radius: 8px;
                             cursor: pointer;
+                            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                            transition: border-color .18s ease;
+                        }
+                        .link-btn:hover { border-color: rgba(56,189,248,.65); color:#7dd3fc; }
+                        .qr {
+                            display: grid; place-items: center;
+                            margin-top: 8px; padding: 10px;
+                            width: 100%;
+                            background: rgba(2,6,23,.45);
+                            border: 1px solid var(--line);
+                            border-radius: 12px;
+                        }
+                        .qr:empty { display: none; }
+                        /* ---------- Config dl ---------- */
+                        dl { margin: 8px 0 0; }
+                        dl > div { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+                        dl > div:last-child { border-bottom: none; }
+                        dt { font-size: 12px; color: var(--muted); margin-bottom: 2px; letter-spacing: .3px; }
+                        dd {
+                            margin: 0; font-size: 13px;
+                            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                            color: #a5f3fc; word-break: break-all;
+                        }
+                        /* ---------- Editor ---------- */
+                        .editor-container { width: 100%; }
+                        .editor {
+                            width: 100%; height: 280px;
+                            margin: 12px 0;
+                            padding: 12px;
+                            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                            font-size: 12.5px; line-height: 1.6;
+                            color: #d1fae5;
+                            background: rgba(2, 6, 23, 0.6);
+                            border: 1px solid var(--line);
+                            border-radius: 12px;
+                            resize: vertical;
+                        }
+                        .editor:focus { outline: none; border-color: rgba(129,140,248,.55); }
+                        .save-container { display: flex; align-items: center; gap: 12px; }
+                        .save-btn, .back-btn {
+                            padding: 9px 22px;
+                            font-size: 13px; font-weight: 700; color: #fff;
+                            border: none; border-radius: 10px; cursor: pointer;
+                            transition: filter .18s ease, transform .12s ease;
                         }
                         .save-btn {
-                            background: #4CAF50;
+                            background: linear-gradient(135deg,#10b981,#34d399);
+                            box-shadow: 0 8px 20px rgba(16,185,129,.35);
                         }
-                        .save-btn:hover {
-                            background: #45a049;
+                        .save-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+                        .save-btn:disabled { filter: grayscale(.5); cursor: not-allowed; transform: none; }
+                        .back-btn { background: #475569; }
+                        .back-btn:hover { background: #64748b; }
+                        .save-status { color: var(--muted); font-size: 12.5px; }
+                        /* ---------- Footer ---------- */
+                        .ua {
+                            padding: 12px 18px;
+                            font-size: 12px; color: var(--muted);
+                            background: var(--card);
+                            border: 1px solid var(--card-border);
+                            border-radius: 12px;
+                            backdrop-filter: blur(10px);
+                            word-break: break-all;
                         }
-                        .back-btn {
-                            background: #666;
+                        .ua code { color: #94a3b8; }
+                        .toggle-btn {
+                            background: none; border: 1px solid rgba(192,132,252,.35); color:#d8b4fe;
+                            padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 600;
                         }
-                        .back-btn:hover {
-                            background: #555;
-                        }
-                        .save-status {
-                            color: #666;
-                        }
+                        .toggle-btn:hover { background: rgba(192,132,252,.12); }
+                        ::selection { background: rgba(129,140,248,.4); }
                     </style>
                     <script src="https://cdn.jsdelivr.net/npm/@keeex/qrcodejs-kx@1.0.2/qrcode.min.js"></script>
                 </head>
                 <body>
-                    ################################################################<br>
-                    Subscribe / sub 订阅地址, 点击链接自动 <strong>复制订阅链接</strong> 并 <strong>生成订阅二维码</strong> <br>
-                    ---------------------------------------------------------------<br>
-                    访客订阅只能使用订阅功能，无法查看配置页！<br>
-                    ---------------------------------------------------------------<br>
-                    GUEST（访客订阅TOKEN）: <strong>${guest}</strong><br>
-                    ---------------------------------------------------------------<br>
-                    自适应订阅地址:<br>
-                    <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}','guest_0')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/sub?token=${guest}</a><br>
-                    <div id="guest_0" style="margin: 10px 10px 10px 10px;"></div>
-                    Base64订阅地址:<br>
-                    <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&b64','guest_1')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/sub?token=${guest}&b64</a><br>
-                    <div id="guest_1" style="margin: 10px 10px 10px 10px;"></div>
-                    clash订阅地址:<br>
-                    <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&clash','guest_2')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/sub?token=${guest}&clash</a><br>
-                    <div id="guest_2" style="margin: 10px 10px 10px 10px;"></div>
-                    singbox订阅地址:<br>
-                    <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&sb','guest_3')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/sub?token=${guest}&sb</a><br>
-                    <div id="guest_3" style="margin: 10px 10px 10px 10px;"></div>
-                    surge订阅地址:<br>
-                    <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&surge','guest_4')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/sub?token=${guest}&surge</a><br>
-                    <div id="guest_4" style="margin: 10px 10px 10px 10px;"></div>
-                    loon订阅地址:<br>
-                    <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&loon','guest_5')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/sub?token=${guest}&loon</a><br>
-                    <div id="guest_5" style="margin: 10px 10px 10px 10px;"></div>
-                    &nbsp;&nbsp;<strong><a href="javascript:void(0);" id="noticeToggle" onclick="toggleNotice()">查看配置订阅∨</a></strong><br>
-                    <div id="noticeContent" class="notice-content" style="display: none;">
-                        ---------------------------------------------------------------<br>
-                        配置订阅地址会导致配置页泄露，请谨慎分享！<br>
-                        ---------------------------------------------------------------<br>
-                        自适应订阅地址:<br>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?sub','qrcode_0')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}</a><br>
-                        <div id="qrcode_0" style="margin: 10px 10px 10px 10px;"></div>
-                        Base64订阅地址:<br>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?b64','qrcode_1')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}?b64</a><br>
-                        <div id="qrcode_1" style="margin: 10px 10px 10px 10px;"></div>
-                        clash订阅地址:<br>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?clash','qrcode_2')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}?clash</a><br>
-                        <div id="qrcode_2" style="margin: 10px 10px 10px 10px;"></div>
-                        singbox订阅地址:<br>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?sb','qrcode_3')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}?sb</a><br>
-                        <div id="qrcode_3" style="margin: 10px 10px 10px 10px;"></div>
-                        surge订阅地址:<br>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?surge','qrcode_4')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}?surge</a><br>
-                        <div id="qrcode_4" style="margin: 10px 10px 10px 10px;"></div>
-                        loon订阅地址:<br>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?loon','qrcode_5')" style="color:blue;text-decoration:underline;cursor:pointer;">https://${url.hostname}/${mytoken}?loon</a><br>
-                        <div id="qrcode_5" style="margin: 10px 10px 10px 10px;"></div>
-                    </div>
-                    ---------------------------------------------------------------<br>
-                    ################################################################<br>
-                    订阅转换配置<br>
-                    ---------------------------------------------------------------<br>
-                    SUBAPI（订阅转换后端）: <strong>${subProtocol}://${subConverter}</strong><br>
-                    SUBCONFIG（订阅转换配置文件）: <strong>${subConfig}</strong><br>
-                    ---------------------------------------------------------------<br>
-                    ################################################################<br>
-                    ${FileName} 汇聚订阅编辑:
-                    <div class="editor-container">
-                        ${hasKV ? `
-                        <textarea class="editor"
-                            placeholder="${decodeURIComponent(atob('TElOSyVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQp2bGVzcyUzQSUyRiUyRjI0NmFhNzk1LTA2MzctNGY0Yy04ZjY0LTJjOGZiMjRjMWJhZCU0MDEyNy4wLjAuMSUzQTEyMzQlM0ZlbmNyeXB0aW9uJTNEbm9uZSUyNnNlY3VyaXR5JTNEdGxzJTI2c25pJTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2YWxsb3dJbnNlY3VyZSUzRDElMjZ0eXBlJTNEd3MlMjZob3N0JTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2cGF0aCUzRCUyNTJGJTI1M0ZlZCUyNTNEMjU2MCUyM0NGbmF0CnRyb2phbiUzQSUyRiUyRmFhNmRkZDJmLWQxY2YtNGE1Mi1iYTFiLTI2NDBjNDFhNzg1NiU0MDIxOC4xOTAuMjMwLjIwNyUzQTQxMjg4JTNGc2VjdXJpdHklM0R0bHMlMjZzbmklM0RoazEyLmJpbGliaWxpLmNvbSUyNmFsbG93SW5zZWN1cmUlM0QxJTI2dHlwZSUzRHRjcCUyNmhlYWRlclR5cGUlM0Rub25lJTIzSEsKc3MlM0ElMkYlMkZZMmhoWTJoaE1qQXRhV1YwWmkxd2IyeDVNVE13TlRveVJYUlFjVzQyU0ZscVZVNWpTRzlvVEdaVmNFWlJkMjVtYWtORFVUVnRhREZ0U21SRlRVTkNkV04xVjFvNVVERjFaR3RTUzBodVZuaDFielUxYXpGTFdIb3lSbTgyYW5KbmRERTRWelkyYjNCMGVURmxOR0p0TVdwNlprTm1RbUklMjUzRCU0MDg0LjE5LjMxLjYzJTNBNTA4NDElMjNERQoKCiVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQpodHRwcyUzQSUyRiUyRnN1Yi54Zi5mcmVlLmhyJTJGYXV0bw=='))}"
-                            id="content">${content}</textarea>
-                        <div class="save-container">
-                            <button class="save-btn" onclick="saveContent(this)">保存</button>
-                            <span class="save-status" id="saveStatus"></span>
+                    <div class="page">
+                        <header class="hero">
+                            <div class="brand">
+                                <div class="logo">🚀</div>
+                                <div>
+                                    <h1>CF Workers <span class="grad">SUB</span></h1>
+                                    <p class="tagline">订阅聚合 · 格式转换 · 边缘加速</p>
+                                </div>
+                            </div>
+                            <span class="pill">👋 访客模式</span>
+                        </header>
+
+                        <div class="notice-bar">
+                            <span>⚠️ 访客订阅只能使用订阅功能，无法查看配置页！</span>
+                            <span style="margin-left:auto">GUEST TOKEN：<code>${guest}</code></span>
                         </div>
-                        ` : '<p>请绑定 <strong>变量名称</strong> 为 <strong>KV</strong> 的KV命名空间</p>'}
+
+                        <main class="grid">
+                            <!-- 左栏：访客订阅地址 -->
+                            <section class="card">
+                                <div class="card-head">🔗 访客订阅地址</div>
+                                <p class="card-sub">点击订阅地址自动复制，并生成对应二维码</p>
+                                <div class="link-list">
+                                    <div class="link-row">
+                                        <span class="chip chip-auto">自适应</span>
+                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}','guest_0')">https://${url.hostname}/sub?token=${guest}</button>
+                                    </div>
+                                    <div class="qr" id="guest_0"></div>
+                                    <div class="link-row">
+                                        <span class="chip chip-b64">Base64</span>
+                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&b64','guest_1')">https://${url.hostname}/sub?token=${guest}&amp;b64</button>
+                                    </div>
+                                    <div class="qr" id="guest_1"></div>
+                                    <div class="link-row">
+                                        <span class="chip chip-clash">Clash</span>
+                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&clash','guest_2')">https://${url.hostname}/sub?token=${guest}&amp;clash</button>
+                                    </div>
+                                    <div class="qr" id="guest_2"></div>
+                                    <div class="link-row">
+                                        <span class="chip chip-singbox">sing-box</span>
+                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&sb','guest_3')">https://${url.hostname}/sub?token=${guest}&amp;sb</button>
+                                    </div>
+                                    <div class="qr" id="guest_3"></div>
+                                    <div class="link-row">
+                                        <span class="chip chip-surge">Surge</span>
+                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&surge','guest_4')">https://${url.hostname}/sub?token=${guest}&amp;surge</button>
+                                    </div>
+                                    <div class="qr" id="guest_4"></div>
+                                    <div class="link-row">
+                                        <span class="chip chip-loon">Loon</span>
+                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&loon','guest_5')">https://${url.hostname}/sub?token=${guest}&amp;loon</button>
+                                    </div>
+                                    <div class="qr" id="guest_5"></div>
+                                </div>
+                            </section>
+
+                            <!-- 右栏 -->
+                            <div>
+                                <section class="card">
+                                    <div class="card-head">
+                                        <span>🔐 配置订阅</span>
+                                        <button class="toggle-btn" id="noticeToggle" onclick="toggleNotice()">查看配置订阅 ∨</button>
+                                    </div>
+                                    <p class="card-sub">使用管理员 TOKEN 的完整配置订阅</p>
+                                    <div id="noticeContent" class="notice-content" style="display: none;">
+                                        <div class="warn">⚠️ 配置订阅地址会导致配置页泄露，请谨慎分享！</div>
+                                        <div class="link-list">
+                                            <div class="link-row">
+                                                <span class="chip chip-auto">自适应</span>
+                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}','qrcode_0')">https://${url.hostname}/${mytoken}</button>
+                                            </div>
+                                            <div class="qr" id="qrcode_0"></div>
+                                            <div class="link-row">
+                                                <span class="chip chip-b64">Base64</span>
+                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?b64','qrcode_1')">https://${url.hostname}/${mytoken}?b64</button>
+                                            </div>
+                                            <div class="qr" id="qrcode_1"></div>
+                                            <div class="link-row">
+                                                <span class="chip chip-clash">Clash</span>
+                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?clash','qrcode_2')">https://${url.hostname}/${mytoken}?clash</button>
+                                            </div>
+                                            <div class="qr" id="qrcode_2"></div>
+                                            <div class="link-row">
+                                                <span class="chip chip-singbox">sing-box</span>
+                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?sb','qrcode_3')">https://${url.hostname}/${mytoken}?sb</button>
+                                            </div>
+                                            <div class="qr" id="qrcode_3"></div>
+                                            <div class="link-row">
+                                                <span class="chip chip-surge">Surge</span>
+                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?surge','qrcode_4')">https://${url.hostname}/${mytoken}?surge</button>
+                                            </div>
+                                            <div class="qr" id="qrcode_4"></div>
+                                            <div class="link-row">
+                                                <span class="chip chip-loon">Loon</span>
+                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?loon','qrcode_5')">https://${url.hostname}/${mytoken}?loon</button>
+                                            </div>
+                                            <div class="qr" id="qrcode_5"></div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class="card">
+                                    <div class="card-head">⚙️ 订阅转换配置</div>
+                                    <p class="card-sub">在线订阅转换后端与规则配置</p>
+                                    <dl>
+                                        <div>
+                                            <dt>SUBAPI（订阅转换后端）</dt>
+                                            <dd>${subProtocol}://${subConverter}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>SUBCONFIG（订阅转换配置文件）</dt>
+                                            <dd>${subConfig}</dd>
+                                        </div>
+                                    </dl>
+                                </section>
+
+                                <section class="card">
+                                    <div class="card-head">📝 ${FileName} 汇聚订阅编辑</div>
+                                    <p class="card-sub">在此维护自建节点与订阅链接清单</p>
+                                    <div class="editor-container">
+                                        ${hasKV ? `
+                                        <textarea class="editor"
+                                            placeholder="${decodeURIComponent(atob('TElOSyVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQp2bGVzcyUzQSUyRiUyRjI0NmFhNzk1LTA2MzctNGY0Yy04ZjY0LTJjOGZiMjRjMWJhZCU0MDEyNy4wLjAuMSUzQTEyMzQlM0ZlbmNyeXB0aW9uJTNEbm9uZSUyNnNlY3VyaXR5JTNEdGxzJTI2c25pJTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2YWxsb3dJbnNlY3VyZSUzRDElMjZ0eXBlJTNEd3MlMjZob3N0JTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2cGF0aCUzRCUyNTJGJTI1M0ZlZCUyNTNEMjU2MCUyM0NGbmF0CnRyb2phbiUzQSUyRiUyRmFhNmRkZDJmLWQxY2YtNGE1Mi1iYTFiLTI2NDBjNDFhNzg1NiU0MDIxOC4xOTAuMjMwLjIwNyUzQTQxMjg4JTNGc2VjdXJpdHklM0R0bHMlMjZzbmklM0RoazEyLmJpbGliaWxpLmNvbSUyNmFsbG93SW5zZWN1cmUlM0QxJTI2dHlwZSUzRHRjcCUyNmhlYWRlclR5cGUlM0Rub25lJTIzSEsKc3MlM0ElMkYlMkZZMmhoWTJoaE1qQXRhV1YwWmkxd2IyeDVNVE13TlRveVJYUlFjVzQyU0ZscVZVNWpTRzlvVEdaVmNFWlJkMjVtYWtORFVUVnRhREZ0U21SRlRVTkNkV04xVjFvNVVERjFaR3RTUzBodVZuaDFielUxYXpGTFdIb3lSbTgyYW5KbmRERTRWelkyYjNCMGVURmxOR0p0TVdwNlprTm1RbUklMjUzRCU0MDg0LjE5LjMxLjYzJTNBNTA4NDElMjNERQoKCiVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQpodHRwcyUzQSUyRiUyRnN1Yi54Zi5mcmVlLmhyJTJGYXV0bw=='))}"
+                                            id="content">${content}</textarea>
+                                        <div class="save-container">
+                                            <button class="save-btn" onclick="saveContent(this)">保存</button>
+                                            <span class="save-status" id="saveStatus"></span>
+                                        </div>
+                                        ` : '<div class="warn">请绑定 <strong>变量名称</strong> 为 <strong>KV</strong> 的 KV 命名空间以启用在线编辑</div>'}
+                                    </div>
+                                </section>
+
+                                <div class="ua">UA：<code>${request.headers.get('User-Agent')}</code></div>
+                            </div>
+                        </main>
                     </div>
-                    <br>
-                    ################################################################<br>
-                    <br><br>UA: <strong>${request.headers.get('User-Agent')}</strong>
                     <script>
                     function copyToClipboard(text, qrcode) {
                         navigator.clipboard.writeText(text).then(() => {
