@@ -22,7 +22,7 @@ let subConfig = "https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/conf
 let subProtocol = 'https';
 
 export default {
-	async fetch(request, env) {
+	async fetch(request, env, ctx) {
 		const userAgentHeader = request.headers.get('User-Agent');
 		const userAgent = userAgentHeader ? userAgentHeader.toLowerCase() : "null";
 		const url = new URL(request.url);
@@ -56,7 +56,7 @@ export default {
 		SUBUpdateTime = env.SUBUPTIME || SUBUpdateTime;
 
 		if (!([mytoken, fakeToken, 访客订阅].includes(token) || url.pathname == ("/" + mytoken) || url.pathname.includes("/" + mytoken + "?"))) {
-			if (TG == 1 && url.pathname !== "/" && url.pathname !== "/favicon.ico") await sendMessage(`#异常访问 ${FileName}`, request.headers.get('CF-Connecting-IP'), `UA: ${userAgent}</tg-spoiler>\n域名: ${url.hostname}\n<tg-spoiler>入口: ${url.pathname + url.search}</tg-spoiler>`);
+			if (TG == 1 && url.pathname !== "/" && url.pathname !== "/favicon.ico") ctx.waitUntil(日志记录(env, request, url, FileName, '异常访问', userAgentHeader, TG == 1));
 			if (env.URL302) return Response.redirect(env.URL302, 302);
 			else if (env.URL) return await proxyURL(env.URL, url);
 			else return new Response(await nginx(), {
@@ -69,7 +69,7 @@ export default {
 			if (env.KV) {
 				await 迁移地址列表(env, 'LINK.txt');
 				if (userAgent.includes('mozilla') && !url.search) {
-					await sendMessage(`#编辑订阅 ${FileName}`, request.headers.get('CF-Connecting-IP'), `UA: ${userAgentHeader}</tg-spoiler>\n域名: ${url.hostname}\n<tg-spoiler>入口: ${url.pathname + url.search}</tg-spoiler>`);
+					ctx.waitUntil(日志记录(env, request, url, FileName, '编辑订阅', userAgentHeader, true));
 					return await KV(request, env, 'LINK.txt', 访客订阅);
 				} else {
 					MainData = await env.KV.get('LINK.txt') || MainData;
@@ -90,7 +90,7 @@ export default {
 			}
 			MainData = 自建节点;
 			urls = await ADD(订阅链接);
-			await sendMessage(`#获取订阅 ${FileName}`, request.headers.get('CF-Connecting-IP'), `UA: ${userAgentHeader}</tg-spoiler>\n域名: ${url.hostname}\n<tg-spoiler>入口: ${url.pathname + url.search}</tg-spoiler>`);
+			ctx.waitUntil(日志记录(env, request, url, FileName, '获取订阅', userAgentHeader, true));
 			const isSubConverterRequest = request.headers.get('subconverter-request') || request.headers.get('subconverter-version') || userAgent.includes('subconverter');
 			let 订阅格式 = 'base64';
 			if (!(userAgent.includes('null') || isSubConverterRequest || userAgent.includes('nekobox') || userAgent.includes(('CF-Workers-SUB').toLowerCase()))) {
@@ -258,26 +258,70 @@ async function nginx() {
 	return text;
 }
 
-async function sendMessage(type, ip, add_data = "") {
-	if (BotToken !== '' && ChatID !== '') {
-		let msg = "";
-		const response = await fetch(`http://ip-api.com/json/${ip}?lang=zh-CN`);
-		if (response.status == 200) {
-			const ipInfo = await response.json();
-			msg = `${type}\nIP: ${ip}\n国家: ${ipInfo.country}\n<tg-spoiler>城市: ${ipInfo.city}\n组织: ${ipInfo.org}\nASN: ${ipInfo.as}\n${add_data}`;
-		} else {
-			msg = `${type}\nIP: ${ip}\n<tg-spoiler>${add_data}`;
+async function 日志记录(env, request, url, 订阅名 = FileName, 请求类型 = '获取订阅', userAgentHeader = '', enableTG = false) {
+	try {
+		const 访问IP = request.headers.get('CF-Connecting-IP') || request.headers.get('True-Client-IP') || request.headers.get('X-Real-IP') || request.headers.get('X-Forwarded-For') || '未知IP';
+		const 当前时间 = new Date();
+		const cf = request.cf || {};
+		const 国家 = cf.country || 'N/A', 城市 = cf.city || 'N/A';
+		const ASN = `AS${cf.asn || '0'} ${cf.asOrganization || 'Unknown'}`;
+
+		// ---- Telegram 通知（对齐 _worker2.js 的样式，保留 _worker.js 的环境变量配置方式） ----
+		// enableTG 由调用方传入（对应 _worker.js 原有的 TG==1 触发语义）；若配置了 BotToken/ChatID 才发送
+		if (enableTG && BotToken !== '' && ChatID !== '') {
+			try {
+				const 请求时间 = 当前时间.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+				const msg = `<b>#${订阅名} 日志通知</b>\n\n` +
+					`📌 <b>类型：</b>#${请求类型}\n` +
+					`🌐 <b>IP：</b><code>${访问IP}</code>\n` +
+					`📍 <b>位置：</b>${国家} ${城市}\n` +
+					`🏢 <b>ASN：</b>${ASN}\n` +
+					`🔗 <b>域名：</b><code>${url.hostname}</code>\n` +
+					`🔍 <b>路径：</b><code>${url.pathname + url.search}</code>\n` +
+					`🤖 <b>UA：</b><code>${userAgentHeader}</code>\n` +
+					`📅 <b>时间：</b>${请求时间}\n`;
+				await fetch(`https://api.telegram.org/bot${BotToken}/sendMessage?chat_id=${ChatID}&parse_mode=HTML&text=${encodeURIComponent(msg)}`, {
+					method: 'GET',
+					headers: {
+						'Accept': 'text/html,application/xhtml+xml,application/xml;',
+						'Accept-Encoding': 'gzip, deflate, br',
+						'User-Agent': userAgentHeader || 'Mozilla/5.0 Chrome/90.0.4430.72'
+					}
+				});
+			} catch (error) {
+				console.error('发送TG通知出错:', error.message);
+			}
 		}
 
-		let url = "https://api.telegram.org/bot" + BotToken + "/sendMessage?chat_id=" + ChatID + "&parse_mode=HTML&text=" + encodeURIComponent(msg);
-		return fetch(url, {
-			method: 'get',
-			headers: {
-				'Accept': 'text/html,application/xhtml+xml,application/xml;',
-				'Accept-Encoding': 'gzip, deflate, br',
-				'User-Agent': 'Mozilla/5.0 Chrome/90.0.4430.72'
-			}
-		});
+		// ---- 写入 KV 日志 log.json（对齐 _worker2.js：30分钟去重 + 4MB容量控制） ----
+		if (!env.KV || typeof env.KV.get !== 'function') return;
+		try {
+			const 日志内容 = {
+				TYPE: 请求类型, IP: 访问IP, ASN, CC: `${国家} ${城市}`,
+				URL: request.url, UA: userAgentHeader || 'Unknown', TIME: 当前时间.getTime()
+			};
+			let 日志数组 = [];
+			const 现有日志 = await env.KV.get('log.json'), KV容量限制 = 4;//MB
+			if (现有日志) {
+				try {
+					日志数组 = JSON.parse(现有日志);
+					if (!Array.isArray(日志数组)) { 日志数组 = [日志内容]; }
+					else {
+						// 30分钟内相同IP/URL/UA且类型非订阅的请求去重
+						const 三十分钟前时间戳 = 当前时间.getTime() - 30 * 60 * 1000;
+						const 已存在 = 日志数组.some(log => log.IP === 访问IP && log.URL === request.url && log.UA === userAgentHeader && log.TIME >= 三十分钟前时间戳);
+						if (已存在) return;
+						日志数组.push(日志内容);
+						while (JSON.stringify(日志数组, null, 2).length > KV容量限制 * 1024 * 1024 && 日志数组.length > 0) 日志数组.shift();
+					}
+				} catch (e) { 日志数组 = [日志内容]; }
+			} else { 日志数组 = [日志内容]; }
+			await env.KV.put('log.json', JSON.stringify(日志数组, null, 2));
+		} catch (error) {
+			console.error('写入KV日志失败:', error.message);
+		}
+	} catch (error) {
+		console.error('日志记录失败:', error.message);
 	}
 }
 
