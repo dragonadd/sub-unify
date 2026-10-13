@@ -661,8 +661,8 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
                         }
                         .notice-bar code { padding: 2px 7px; border-radius: 6px; background: rgba(2,6,23,.4); }
                         /* ---------- Grid ---------- */
-                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-                        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+                        .stack { display: flex; flex-direction: column; gap: 20px; }
+                        .stack > * { min-width: 0; }
                         /* ---------- Card ---------- */
                         .card {
                             padding: 20px 22px;
@@ -814,8 +814,25 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
                             <span style="margin-left:auto">GUEST TOKEN：<code>${guest}</code></span>
                         </div>
 
-                        <main class="grid">
-                            <!-- 左栏：访客订阅地址 -->
+                        <main class="stack">
+                            <!-- 汇聚订阅编辑 -->
+                            <section class="card">
+                                <div class="card-head">📝 ${FileName} 汇聚订阅编辑</div>
+                                <p class="card-sub">在此维护自建节点与订阅链接清单</p>
+                                <div class="editor-container">
+                                    ${hasKV ? `
+                                    <textarea class="editor"
+                                        placeholder="${decodeURIComponent(atob('TElOSyVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQp2bGVzcyUzQSUyRiUyRjI0NmFhNzk1LTA2MzctNGY0Yy04ZjY0LTJjOGZiMjRjMWJhZCU0MDEyNy4wLjAuMSUzQTEyMzQlM0ZlbmNyeXB0aW9uJTNEbm9uZSUyNnNlY3VyaXR5JTNEdGxzJTI2c25pJTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2YWxsb3dJbnNlY3VyZSUzRDElMjZ0eXBlJTNEd3MlMjZob3N0JTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2cGF0aCUzRCUyNTJGJTI1M0ZlZCUyNTNEMjU2MCUyM0NGbmF0CnRyb2phbiUzQSUyRiUyRmFhNmRkZDJmLWQxY2YtNGE1Mi1iYTFiLTI2NDBjNDFhNzg1NiU0MDIxOC4xOTAuMjMwLjIwNyUzQTQxMjg4JTNGc2VjdXJpdHklM0R0bHMlMjZzbmklM0RoazEyLmJpbGliaWxpLmNvbSUyNmFsbG93SW5zZWN1cmUlM0QxJTI2dHlwZSUzRHRjcCUyNmhlYWRlclR5cGUlM0Rub25lJTIzSEsKc3MlM0ElMkYlMkZZMmhoWTJoaE1qQXRhV1YwWmkxd2IyeDVNVE13TlRveVJYUlFjVzQyU0ZscVZVNWpTRzlvVEdaVmNFWlJkMjVtYWtORFVUVnRhREZ0U21SRlRVTkNkV04xVjFvNVVERjFaR3RTUzBodVZuaDFielUxYXpGTFdIb3lSbTgyYW5KbmRERTRWelkyYjNCMGVURmxOR0p0TVdwNlprTm1RbUklMjUzRCU0MDg0LjE5LjMxLjYzJTNBNTA4NDElMjNERQoKCiVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQpodHRwcyUzQSUyRiUyRnN1Yi54Zi5mcmVlLmhyJTJGYXV0bw=='))}"
+                                        id="content">${content}</textarea>
+                                    <div class="save-container">
+                                        <button class="save-btn" onclick="saveContent(this)">保存</button>
+                                        <span class="save-status" id="saveStatus"></span>
+                                    </div>
+                                    ` : '<div class="warn">请绑定 <strong>变量名称</strong> 为 <strong>KV</strong> 的 KV 命名空间以启用在线编辑</div>'}
+                                </div>
+                            </section>
+
+                            <!-- 访客订阅地址 -->
                             <section class="card">
                                 <div class="card-head">🔗 访客订阅地址</div>
                                 <p class="card-sub">点击订阅地址自动复制，并生成对应二维码</p>
@@ -840,97 +857,60 @@ async function KV(request, env, txt = 'ADD.txt', guest) {
                                         <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&sb','guest_3')">https://${url.hostname}/sub?token=${guest}&amp;sb</button>
                                     </div>
                                     <div class="qr" id="guest_3"></div>
-                                    <div class="link-row">
-                                        <span class="chip chip-surge">Surge</span>
-                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&surge','guest_4')">https://${url.hostname}/sub?token=${guest}&amp;surge</button>
-                                    </div>
-                                    <div class="qr" id="guest_4"></div>
-                                    <div class="link-row">
-                                        <span class="chip chip-loon">Loon</span>
-                                        <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/sub?token=${guest}&loon','guest_5')">https://${url.hostname}/sub?token=${guest}&amp;loon</button>
-                                    </div>
-                                    <div class="qr" id="guest_5"></div>
                                 </div>
                             </section>
 
-                            <!-- 右栏 -->
-                            <div>
-                                <section class="card">
-                                    <div class="card-head">
-                                        <span>🔐 配置订阅</span>
-                                        <button class="toggle-btn" id="noticeToggle" onclick="toggleNotice()">查看配置订阅 ∨</button>
+                            <!-- 配置订阅 -->
+                            <section class="card">
+                                <div class="card-head">
+                                    <span>🔐 配置订阅</span>
+                                    <button class="toggle-btn" id="noticeToggle" onclick="toggleNotice()">查看配置订阅 ∨</button>
+                                </div>
+                                <p class="card-sub">使用管理员 TOKEN 的完整配置订阅</p>
+                                <div id="noticeContent" class="notice-content" style="display: none;">
+                                    <div class="warn">⚠️ 配置订阅地址会导致配置页泄露，请谨慎分享！</div>
+                                    <div class="link-list">
+                                        <div class="link-row">
+                                            <span class="chip chip-auto">自适应</span>
+                                            <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}','qrcode_0')">https://${url.hostname}/${mytoken}</button>
+                                        </div>
+                                        <div class="qr" id="qrcode_0"></div>
+                                        <div class="link-row">
+                                            <span class="chip chip-b64">Base64</span>
+                                            <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?b64','qrcode_1')">https://${url.hostname}/${mytoken}?b64</button>
+                                        </div>
+                                        <div class="qr" id="qrcode_1"></div>
+                                        <div class="link-row">
+                                            <span class="chip chip-clash">Clash</span>
+                                            <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?clash','qrcode_2')">https://${url.hostname}/${mytoken}?clash</button>
+                                        </div>
+                                        <div class="qr" id="qrcode_2"></div>
+                                        <div class="link-row">
+                                            <span class="chip chip-singbox">sing-box</span>
+                                            <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?sb','qrcode_3')">https://${url.hostname}/${mytoken}?sb</button>
+                                        </div>
+                                        <div class="qr" id="qrcode_3"></div>
                                     </div>
-                                    <p class="card-sub">使用管理员 TOKEN 的完整配置订阅</p>
-                                    <div id="noticeContent" class="notice-content" style="display: none;">
-                                        <div class="warn">⚠️ 配置订阅地址会导致配置页泄露，请谨慎分享！</div>
-                                        <div class="link-list">
-                                            <div class="link-row">
-                                                <span class="chip chip-auto">自适应</span>
-                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}','qrcode_0')">https://${url.hostname}/${mytoken}</button>
-                                            </div>
-                                            <div class="qr" id="qrcode_0"></div>
-                                            <div class="link-row">
-                                                <span class="chip chip-b64">Base64</span>
-                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?b64','qrcode_1')">https://${url.hostname}/${mytoken}?b64</button>
-                                            </div>
-                                            <div class="qr" id="qrcode_1"></div>
-                                            <div class="link-row">
-                                                <span class="chip chip-clash">Clash</span>
-                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?clash','qrcode_2')">https://${url.hostname}/${mytoken}?clash</button>
-                                            </div>
-                                            <div class="qr" id="qrcode_2"></div>
-                                            <div class="link-row">
-                                                <span class="chip chip-singbox">sing-box</span>
-                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?sb','qrcode_3')">https://${url.hostname}/${mytoken}?sb</button>
-                                            </div>
-                                            <div class="qr" id="qrcode_3"></div>
-                                            <div class="link-row">
-                                                <span class="chip chip-surge">Surge</span>
-                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?surge','qrcode_4')">https://${url.hostname}/${mytoken}?surge</button>
-                                            </div>
-                                            <div class="qr" id="qrcode_4"></div>
-                                            <div class="link-row">
-                                                <span class="chip chip-loon">Loon</span>
-                                                <button class="link-btn" onclick="copyToClipboard('https://${url.hostname}/${mytoken}?loon','qrcode_5')">https://${url.hostname}/${mytoken}?loon</button>
-                                            </div>
-                                            <div class="qr" id="qrcode_5"></div>
-                                        </div>
+                                </div>
+                            </section>
+
+                            <!-- 订阅转换配置 -->
+                            <section class="card">
+                                <div class="card-head">⚙️ 订阅转换配置</div>
+                                <p class="card-sub">在线订阅转换后端与规则配置</p>
+                                <dl>
+                                    <div>
+                                        <dt>SUBAPI（订阅转换后端）</dt>
+                                        <dd>${subProtocol}://${subConverter}</dd>
                                     </div>
-                                </section>
-
-                                <section class="card">
-                                    <div class="card-head">⚙️ 订阅转换配置</div>
-                                    <p class="card-sub">在线订阅转换后端与规则配置</p>
-                                    <dl>
-                                        <div>
-                                            <dt>SUBAPI（订阅转换后端）</dt>
-                                            <dd>${subProtocol}://${subConverter}</dd>
-                                        </div>
-                                        <div>
-                                            <dt>SUBCONFIG（订阅转换配置文件）</dt>
-                                            <dd>${subConfig}</dd>
-                                        </div>
-                                    </dl>
-                                </section>
-
-                                <section class="card">
-                                    <div class="card-head">📝 ${FileName} 汇聚订阅编辑</div>
-                                    <p class="card-sub">在此维护自建节点与订阅链接清单</p>
-                                    <div class="editor-container">
-                                        ${hasKV ? `
-                                        <textarea class="editor"
-                                            placeholder="${decodeURIComponent(atob('TElOSyVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQp2bGVzcyUzQSUyRiUyRjI0NmFhNzk1LTA2MzctNGY0Yy04ZjY0LTJjOGZiMjRjMWJhZCU0MDEyNy4wLjAuMSUzQTEyMzQlM0ZlbmNyeXB0aW9uJTNEbm9uZSUyNnNlY3VyaXR5JTNEdGxzJTI2c25pJTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2YWxsb3dJbnNlY3VyZSUzRDElMjZ0eXBlJTNEd3MlMjZob3N0JTNEVEcuQ01MaXVzc3NzLmxvc2V5b3VyaXAuY29tJTI2cGF0aCUzRCUyNTJGJTI1M0ZlZCUyNTNEMjU2MCUyM0NGbmF0CnRyb2phbiUzQSUyRiUyRmFhNmRkZDJmLWQxY2YtNGE1Mi1iYTFiLTI2NDBjNDFhNzg1NiU0MDIxOC4xOTAuMjMwLjIwNyUzQTQxMjg4JTNGc2VjdXJpdHklM0R0bHMlMjZzbmklM0RoazEyLmJpbGliaWxpLmNvbSUyNmFsbG93SW5zZWN1cmUlM0QxJTI2dHlwZSUzRHRjcCUyNmhlYWRlclR5cGUlM0Rub25lJTIzSEsKc3MlM0ElMkYlMkZZMmhoWTJoaE1qQXRhV1YwWmkxd2IyeDVNVE13TlRveVJYUlFjVzQyU0ZscVZVNWpTRzlvVEdaVmNFWlJkMjVtYWtORFVUVnRhREZ0U21SRlRVTkNkV04xVjFvNVVERjFaR3RTUzBodVZuaDFielUxYXpGTFdIb3lSbTgyYW5KbmRERTRWelkyYjNCMGVURmxOR0p0TVdwNlprTm1RbUklMjUzRCU0MDg0LjE5LjMxLjYzJTNBNTA4NDElMjNERQoKCiVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNyVBNCVCQSVFNCVCRSU4QiVFRiVCQyU4OCVFNCVCOCU4MCVFOCVBMSU4QyVFNCVCOCU4MCVFNiU5RCVBMSVFOCVBRSVBMiVFOSU5OCU4NSVFOSU5MyVCRSVFNiU4RSVBNSVFNSU4RCVCMyVFNSU4RiVBRiVFRiVCQyU4OSVFRiVCQyU5QQpodHRwcyUzQSUyRiUyRnN1Yi54Zi5mcmVlLmhyJTJGYXV0bw=='))}"
-                                            id="content">${content}</textarea>
-                                        <div class="save-container">
-                                            <button class="save-btn" onclick="saveContent(this)">保存</button>
-                                            <span class="save-status" id="saveStatus"></span>
-                                        </div>
-                                        ` : '<div class="warn">请绑定 <strong>变量名称</strong> 为 <strong>KV</strong> 的 KV 命名空间以启用在线编辑</div>'}
+                                    <div>
+                                        <dt>SUBCONFIG（订阅转换配置文件）</dt>
+                                        <dd>${subConfig}</dd>
                                     </div>
-                                </section>
+                                </dl>
+                            </section>
 
-                                <div class="ua">UA：<code>${request.headers.get('User-Agent')}</code></div>
-                            </div>
+                            <div class="ua">UA：<code>${request.headers.get('User-Agent')}</code></div>
                         </main>
                     </div>
                     <script>
